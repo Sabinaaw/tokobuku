@@ -4,20 +4,19 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Book;
-use App\Models\Author;
 
 class BookController extends Controller
 {
     public function index()
     {
         $books = Book::with('author')->get();
-        return view('books.index', compact('books'));
+        return response()->json($books);
     }
 
-    public function create()
+    public function show($id)
     {
-        $authors = Author::all();
-        return view('books.create', compact('authors'));
+        $book = Book::with('author')->find($id);
+        return response()->json($book);
     }
 
     public function store(Request $request)
@@ -28,16 +27,12 @@ class BookController extends Controller
             'author_id' => 'required',
         ]);
 
-        Book::create($request->all());
+        $book = Book::create($request->all());
 
-        return redirect('/books')->with('success', 'Data berhasil ditambahkan');
-    }
-
-    public function edit($id)
-    {
-        $book = Book::findOrFail($id);
-        $authors = Author::all();
-        return view('books.edit', compact('book', 'authors'));
+        return response()->json([
+            'message' => 'Data berhasil ditambahkan',
+            'data' => $book
+        ]);
     }
 
     public function update(Request $request, $id)
@@ -48,14 +43,21 @@ class BookController extends Controller
             'author_id' => 'required',
         ]);
 
-        Book::findOrFail($id)->update($request->all());
+        $book = Book::find($id);
+        $book->update($request->all());
 
-        return redirect('/books')->with('success', 'Data berhasil diupdate');
+        return response()->json([
+            'message' => 'Data berhasil diupdate',
+            'data' => $book
+        ]);
     }
 
     public function destroy($id)
     {
         Book::destroy($id);
-        return redirect('/books')->with('success', 'Data berhasil dihapus');
+
+        return response()->json([
+            'message' => 'Data berhasil dihapus'
+        ]);
     }
 }

@@ -34,8 +34,6 @@ class AuthorSeeder extends Seeder
             'Leo Tolstoy',
             'Fyodor Dostoevsky',
             'Haruki Murakami',
-
-            // China (yang kamu maksud)
             'SingShong',
         ];
 
