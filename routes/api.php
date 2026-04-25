@@ -20,6 +20,7 @@ use App\Http\Controllers\BookController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::apiResource('genres', GenreController::class);
 Route::apiResource('authors', AuthorController::class);
 Route::apiResource('books', BookController::class);
+Route::apiResource('genres', GenreController::class);
+Route::post('/genres', [GenreController::class, 'store']);
