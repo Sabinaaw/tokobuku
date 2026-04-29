@@ -7,15 +7,31 @@ use Illuminate\Http\Request;
 
 class GenreController extends Controller
 {
-
     public function index()
     {
         $genres = Genre::all();
 
         return response()->json([
-            'message' => 'Data genres berhasil diambil',
+            'status' => 'success',
             'data' => $genres
-        ], 200);
+        ]);
+    }
+
+    public function show($id)
+    {
+        $genre = Genre::find($id);
+
+        if (!$genre) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Genre not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $genre
+        ]);
     }
 
     public function store(Request $request)
@@ -29,22 +45,9 @@ class GenreController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Genre berhasil ditambahkan',
+            'status' => 'success',
             'data' => $genre
         ], 201);
-    }
-
-    public function show($id)
-    {
-        $genre = Genre::find($id);
-
-        if (!$genre) {
-            return response()->json([
-                'message' => 'Genre tidak ditemukan'
-            ], 404);
-        }
-
-        return response()->json($genre, 200);
     }
 
     public function update(Request $request, $id)
@@ -53,7 +56,8 @@ class GenreController extends Controller
 
         if (!$genre) {
             return response()->json([
-                'message' => 'Genre tidak ditemukan'
+                'status' => 'error',
+                'message' => 'Genre not found'
             ], 404);
         }
 
@@ -66,9 +70,9 @@ class GenreController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Genre berhasil diupdate',
+            'status' => 'success',
             'data' => $genre
-        ], 200);
+        ]);
     }
 
     public function destroy($id)
@@ -77,14 +81,16 @@ class GenreController extends Controller
 
         if (!$genre) {
             return response()->json([
-                'message' => 'Genre tidak ditemukan'
+                'status' => 'error',
+                'message' => 'Genre not found'
             ], 404);
         }
 
         $genre->delete();
 
         return response()->json([
-            'message' => 'Genre berhasil dihapus'
-        ], 200);
+            'status' => 'success',
+            'message' => 'Deleted successfully'
+        ]);
     }
 }
