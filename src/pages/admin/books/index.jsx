@@ -1,54 +1,123 @@
 import { useEffect, useState } from "react";
-import { getBooks } from "../../../_services/books";
+import { getBooks, deleteBook } from "../../../_services/books";
 import { Link } from "react-router-dom";
 
 export default function AdminBooks() {
   const [books, setBooks] = useState([]);
-  const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const booksData = await getBooks();
-      console.log("API RESULT:", booksData);
-      setBooks(booksData);
+    let isMounted = true;
+
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const data = await getBooks();
+
+        console.log("DATA:", data); // debug
+
+        const result = Array.isArray(data)
+          ? data
+          : data?.data || [];
+
+        if (isMounted) {
+          setBooks(result);
+        }
+
+      } catch (err) {
+        console.error("FETCH ERROR:", err.response?.data || err);
+
+        if (isMounted) {
+          setError(
+            err.response?.data?.message ||
+            "Gagal mengambil data buku"
+          );
+        }
+
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     };
 
-    fetchData();
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const toggleDropdown = (id) => {
-    setOpenDropdownId(openDropdownId === id ? null : id);
+  // 🔥 DELETE
+  const handleDelete = async (id) => {
+    const confirmDelete = confirm("Yakin mau hapus buku ini?");
+    if (!confirmDelete) return;
+
+    try {
+      await deleteBook(id);
+
+      // update state tanpa reload
+      setBooks((prev) => prev.filter((b) => b.id !== id));
+
+    } catch (error) {
+      console.error("DELETE ERROR:", error.response?.data || error);
+      alert(
+        error.response?.data?.message ||
+        "Gagal menghapus buku"
+      );
+    }
   };
 
   return (
-    <section className="bg-gray-50 dark:bg-gray-900 p-3 sm:p-5">
-      <div className="bg-white dark:bg-gray-800 shadow-md sm:rounded-lg overflow-hidden">
+    <div className="min-h-screen bg-slate-950 text-white p-6">
 
-        {/* HEADER */}
-        <div className="flex justify-between p-4">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-            Books
-          </h2>
-
-          <Link
-            to="/admin/books/create"
-            className="bg-indigo-600 text-white px-4 py-2 rounded"
-          >
-            + Add Book
-          </Link>
+      {/* HEADER */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">📚 Books</h1>
+          <p className="text-gray-400 text-sm mt-1">
+            Manage your books data
+          </p>
         </div>
 
-        {/* TABLE */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left text-gray-500">
-            <thead className="bg-gray-100 text-xs uppercase">
+        <Link
+          to="/admin/books/create"
+          className="bg-indigo-600 hover:bg-indigo-700 px-5 py-2.5 rounded-xl"
+        >
+          + Add Book
+        </Link>
+      </div>
+
+      {/* LOADING */}
+      {loading && (
+        <div className="text-center py-10 text-gray-400">
+          Loading data...
+        </div>
+      )}
+
+      {/* ERROR */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500 text-red-400 p-4 rounded-xl text-center">
+          {error}
+        </div>
+      )}
+
+      {/* TABLE */}
+      {!loading && !error && (
+        <div className="bg-slate-900 rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+
+            <thead className="bg-slate-800 text-gray-300">
               <tr>
-                <th className="px-4 py-3">Title</th>
-                <th className="px-4 py-3">Price</th>
-                <th className="px-4 py-3">Author</th>
-                <th className="px-4 py-3">Genre</th>
-                <th className="px-4 py-3">Created At</th>
-                <th className="px-4 py-3"></th>
+                <th className="px-6 py-4 text-left">ID</th>
+                <th className="px-6 py-4 text-left">Title</th>
+                <th className="px-6 py-4 text-left">Price</th>
+                <th className="px-6 py-4 text-left">Author</th>
+                <th className="px-6 py-4 text-left">Genre</th>
+                <th className="px-6 py-4 text-left">Action</th>
               </tr>
             </thead>
 
@@ -57,63 +126,59 @@ export default function AdminBooks() {
                 books.map((book) => (
                   <tr
                     key={book.id}
-                    className="border-b dark:border-gray-700"
+                    className="border-t border-slate-700 hover:bg-slate-800"
                   >
-                    <td className="px-4 py-3">{book.title}</td>
-                    <td className="px-4 py-3">{book.price}</td>
+                    <td className="px-6 py-4">#{book.id}</td>
 
-                    {/* 🔥 ambil dari relasi */}
-                    <td className="px-4 py-3">
+                    <td className="px-6 py-4 font-medium">
+                      {book.title}
+                    </td>
+
+                    <td className="px-6 py-4 text-indigo-400">
+                      Rp {Number(book.price || 0).toLocaleString("id-ID")}
+                    </td>
+
+                    <td className="px-6 py-4">
                       {book.author?.name || "-"}
                     </td>
 
-                    <td className="px-4 py-3">
+                    <td className="px-6 py-4">
                       {book.genre?.name || "-"}
                     </td>
 
-                    <td className="px-4 py-3">
-                      {new Date(book.created_at).toLocaleDateString()}
-                    </td>
+                    <td className="px-6 py-4 flex gap-2">
 
-                    {/* ACTION */}
-                    <td className="px-4 py-3 relative text-right">
-                      <button
-                        onClick={() => toggleDropdown(book.id)}
-                        className="text-gray-500 hover:text-black"
+                      {/* EDIT */}
+                      <Link
+                        to={`/admin/books/edit/${book.id}`}
+                        className="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-lg text-xs"
                       >
-                        ⋮
+                        Edit
+                      </Link>
+
+                      {/* DELETE */}
+                      <button
+                        onClick={() => handleDelete(book.id)}
+                        className="bg-red-500/20 text-red-400 px-3 py-1 rounded-lg text-xs"
+                      >
+                        Delete
                       </button>
 
-                      {openDropdownId === book.id && (
-                        <div className="absolute right-0 mt-2 w-32 bg-white shadow rounded z-10">
-                          <Link
-                            to={`/admin/books/edit/${book.id}`}
-                            className="block px-4 py-2 hover:bg-gray-100"
-                          >
-                            Edit
-                          </Link>
-
-                          <button
-                            className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      )}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="text-center py-4">
-                    Data Tidak Ditemukan
+                  <td colSpan="6" className="text-center py-10 text-gray-400">
+                    Belum ada data buku
                   </td>
                 </tr>
               )}
             </tbody>
+
           </table>
         </div>
-      </div>
-    </section>
+      )}
+    </div>
   );
 }

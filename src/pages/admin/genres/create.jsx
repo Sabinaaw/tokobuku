@@ -4,46 +4,96 @@ import { useNavigate } from "react-router-dom";
 
 export default function GenreCreate() {
     const [name, setName] = useState("");
-    const [description, setDescription] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        await createGenre({
-            name,
-            description,
-        });
+        if (!name.trim()) {
+            setError("Nama genre tidak boleh kosong");
+            return;
+        }
 
-        navigate("/admin/genres");
+        try {
+            setLoading(true);
+            setError(null);
+
+            const token = localStorage.getItem("token");
+
+            console.log("TOKEN DI CREATE:", token);
+
+            await createGenre({ name }, token);
+
+            navigate("/admin/genres");
+
+        } catch (err) {
+            console.error(err.response?.data || err);
+
+            if (err.response?.status === 401) {
+                setError("Unauthorized (token tidak valid)");
+            } else {
+                setError("Gagal menambahkan genre");
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="p-4">
-        <h1 className="text-xl font-bold mb-4 text-indigo-600">
-        Create Genres
-        </h1>
+        <section className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-6">
 
-            <input
-                type="text"
-                placeholder="Name"
-                className="border p-2 w-full mb-2"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-            />
+            <form
+                onSubmit={handleSubmit}
+                className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-lg"
+            >
+                {/* HEADER */}
+                <h1 className="text-2xl font-semibold mb-6 text-center">
+                    Create Genre
+                </h1>
 
-            <input
-                type="text"
-                placeholder="Description"
-                className="border p-2 w-full mb-2"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-            />
+                {/* ERROR */}
+                {error && (
+                    <div className="mb-4 p-3 text-sm rounded-lg bg-red-500/10 border border-red-500 text-red-400 text-center">
+                        {error}
+                    </div>
+                )}
 
-            <button className="bg-indigo-600 text-white px-4 py-2 rounded">
-                Submit
-            </button>
-        </form>
+                {/* INPUT */}
+                <div className="mb-4">
+                    <label className="block text-sm text-gray-400 mb-1">
+                        Genre Name
+                    </label>
+
+                    <input
+                        type="text"
+                        placeholder="e.g Fantasy"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full p-2 rounded-lg bg-slate-800 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                </div>
+
+                {/* BUTTON */}
+                <button
+                    disabled={loading}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 transition px-4 py-2 rounded-lg font-semibold disabled:opacity-50"
+                >
+                    {loading ? "Submitting..." : "Create Genre"}
+                </button>
+
+                {/* BACK LINK */}
+                <button
+                    type="button"
+                    onClick={() => navigate("/admin/genres")}
+                    className="w-full mt-3 text-sm text-gray-400 hover:text-white transition"
+                >
+                    ← Back to Genres
+                </button>
+            </form>
+
+        </section>
     );
 }
