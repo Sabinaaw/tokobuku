@@ -6,8 +6,6 @@ export default function AdminGenres() {
   const [genres, setGenres] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // 🔥 fetch versi aman (dipakai juga buat refresh)
   const fetchGenres = async () => {
     try {
       setLoading(true);
@@ -27,8 +25,6 @@ export default function AdminGenres() {
       setLoading(false);
     }
   };
-
-  // ✅ FIX: pakai wrapper di useEffect
   useEffect(() => {
     const init = async () => {
       await fetchGenres();
@@ -37,15 +33,12 @@ export default function AdminGenres() {
     init();
   }, []);
 
-  // 🔥 DELETE
   const handleDelete = async (id) => {
     const confirmDelete = confirm("Yakin mau hapus genre ini?");
     if (!confirmDelete) return;
 
     try {
       await deleteGenre(id);
-
-      // update state tanpa reload
       setGenres((prev) => prev.filter((g) => g.id !== id));
 
     } catch (error) {

@@ -8,8 +8,6 @@ export default function EditGenre() {
 
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
-
-  // ✅ FIX: fetch langsung di dalam useEffect (NO WARNING)
   useEffect(() => {
     let ignore = false;
 

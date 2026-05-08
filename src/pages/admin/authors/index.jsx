@@ -44,15 +44,12 @@ export default function AdminAuthors() {
     };
   }, []);
 
-  // 🔥 DELETE
   const handleDelete = async (id) => {
     const confirmDelete = confirm("Yakin mau hapus author ini?");
     if (!confirmDelete) return;
 
     try {
       await deleteAuthor(id);
-
-      // update state tanpa reload
       setAuthors((prev) => prev.filter((a) => a.id !== id));
 
     } catch (error) {

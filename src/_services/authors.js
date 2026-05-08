@@ -1,6 +1,4 @@
 import API from "../_api";
-
-// GET ALL AUTHORS
 export const getAuthors = async () => {
     try {
         const { data } = await API.get("/authors");
@@ -14,7 +12,7 @@ export const getAuthors = async () => {
 export const createAuthor = async (payload) => {
     const token = localStorage.getItem("token");
 
-    console.log("TOKEN DIKIRIM:", token); // 🔥 debug
+    console.log("TOKEN DIKIRIM:", token); 
 
     const { data } = await API.post("/authors", payload, {
         headers: {
@@ -25,7 +23,6 @@ export const createAuthor = async (payload) => {
     return data;
 };
 
-// GET AUTHOR BY ID
 export const getAuthorById = async (id) => {
     try {
         const { data } = await API.get(`/authors/${id}`);
@@ -36,7 +33,6 @@ export const getAuthorById = async (id) => {
     }
 };
 
-// UPDATE AUTHOR
 export const updateAuthor = async (id, payload) => {
     const token = localStorage.getItem("token");
 

@@ -8,7 +8,7 @@ const handleError = (label, error) => {
 const getAuthHeader = () => {
     const token = localStorage.getItem("token");
 
-    console.log("TOKEN:", token); // debug
+    console.log("TOKEN:", token); 
 
     return token
         ? { Authorization: `Bearer ${token}` }

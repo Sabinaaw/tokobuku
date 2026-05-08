@@ -1,90 +1,310 @@
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+
+import AuthInput from "../../components/AuthInput";
+import { register } from "../../_services/auth";
 
 export default function Register() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
+    const navigate = useNavigate();
 
-    try {
-      const response = await fetch("http://localhost:8000/api/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-        }),
-      });
+    const [form, setForm] = useState({
+        fullname: "",
+        email: "",
+        username: "",
+        password: "",
+    });
 
-      const data = await response.json();
+    const [errors, setErrors] = useState({});
+    const [serverError, setServerError] = useState("");
+    const [loading, setLoading] = useState(false);
 
-      if (response.ok) {
-        alert("Register berhasil!");
-        console.log(data);
+    // =========================================
+    // HANDLE CHANGE
+    // =========================================
+    const handleChange = (e) => {
 
-        // opsional: langsung login setelah register
-        localStorage.setItem("token", data.token);
-      } else {
-        alert("Register gagal: " + data.message);
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Terjadi error");
-    }
-  };
+        setForm({
+            ...form,
+            [e.target.name]: e.target.value,
+        });
 
-  return (
-    <section className="bg-gray-50 dark:bg-gray-900">
-      <div className="flex justify-center items-center h-screen">
-        <div className="bg-white p-6 rounded shadow w-96">
-          <h1 className="text-xl font-bold mb-4">Register</h1>
+    };
 
-          <form onSubmit={handleRegister} className="space-y-3">
-            <input
-              type="text"
-              placeholder="Name"
-              className="w-full p-2 border rounded"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+    // =========================================
+    // VALIDATION
+    // =========================================
+    const validate = () => {
 
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full p-2 border rounded"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+        let newErrors = {};
 
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full p-2 border rounded"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+        if (!form.fullname.trim()) {
+            newErrors.fullname = "Nama lengkap wajib diisi";
+        }
 
-            <button
-              type="submit"
-              className="w-full bg-indigo-600 text-white py-2 rounded"
+        if (!form.email.trim()) {
+
+            newErrors.email = "Email wajib diisi";
+
+        } else if (!/\S+@\S+\.\S+/.test(form.email)) {
+
+            newErrors.email = "Format email tidak valid";
+
+        }
+
+        if (!form.username.trim()) {
+            newErrors.username = "Username wajib diisi";
+        }
+
+        if (!form.password.trim()) {
+
+            newErrors.password = "Password wajib diisi";
+
+        } else if (form.password.length < 6) {
+
+            newErrors.password = "Password minimal 6 karakter";
+
+        }
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    };
+
+    // =========================================
+    // SUBMIT
+    // =========================================
+    const handleSubmit = async (e) => {
+
+        e.preventDefault();
+
+        setServerError("");
+
+        if (!validate()) return;
+
+        try {
+
+            setLoading(true);
+
+            const res = await register({
+                name: form.fullname,
+                email: form.email,
+                username: form.username,
+                password: form.password,
+            });
+
+            console.log("REGISTER SUCCESS:", res);
+            console.log("ROLE:", res.user.role);
+
+            // CLEAR OLD STORAGE
+            localStorage.clear();
+
+            // SAVE TOKEN
+            localStorage.setItem(
+                "token",
+                res.access_token
+            );
+
+            // SAVE USER
+            localStorage.setItem(
+                "user",
+                JSON.stringify(res.user)
+            );
+
+            // =========================================
+            // REDIRECT ROLE
+            // =========================================
+            if (res.user.role === "admin") {
+
+                navigate("/admin");
+
+            } else {
+
+                navigate("/customer");
+
+            }
+
+        } catch (err) {
+
+            console.error(
+                "REGISTER ERROR:",
+                err.response?.data || err
+            );
+
+            // VALIDATION ERROR FROM LARAVEL
+            if (err.response?.data?.errors) {
+
+                const laravelErrors =
+                    err.response.data.errors;
+
+                let formattedErrors = {};
+
+                Object.keys(laravelErrors).forEach((key) => {
+                    formattedErrors[key] =
+                        laravelErrors[key][0];
+                });
+
+                setErrors(formattedErrors);
+
+            }
+            // GENERAL ERROR
+            else if (err.response?.data?.message) {
+
+                setServerError(
+                    err.response.data.message
+                );
+
+            } else {
+
+                setServerError("Register gagal");
+
+            }
+
+        } finally {
+
+            setLoading(false);
+
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4 py-10">
+
+            <div
+                className="
+                    w-full
+                    max-w-md
+                    bg-slate-900
+                    border
+                    border-slate-700
+                    rounded-3xl
+                    p-8
+                    shadow-2xl
+                "
             >
-              Register
-            </button>
-          </form>
 
-          <p className="text-sm mt-3">
-            Sudah punya akun?{" "}
-            <a href="/login" className="text-indigo-600">
-              Login
-            </a>
-          </p>
+                {/* HEADER */}
+                <div className="text-center mb-8">
+
+                    <h1 className="text-3xl font-bold text-white">
+                        Create Account
+                    </h1>
+
+                    <p className="text-gray-400 mt-2">
+                        Register to continue
+                    </p>
+
+                </div>
+
+                {/* SERVER ERROR */}
+                {serverError && (
+                    <div
+                        className="
+                            mb-5
+                            bg-red-500/10
+                            border
+                            border-red-500
+                            text-red-400
+                            text-sm
+                            p-3
+                            rounded-xl
+                        "
+                    >
+                        {serverError}
+                    </div>
+                )}
+
+                {/* FORM */}
+                <form
+                    onSubmit={handleSubmit}
+                    className="space-y-5"
+                >
+
+                    {/* FULL NAME */}
+                    <AuthInput
+                        label="Full Name"
+                        name="fullname"
+                        placeholder="Enter your full name"
+                        value={form.fullname}
+                        onChange={handleChange}
+                        error={errors.fullname}
+                    />
+
+                    {/* EMAIL */}
+                    <AuthInput
+                        label="Email"
+                        type="email"
+                        name="email"
+                        placeholder="Enter your email"
+                        value={form.email}
+                        onChange={handleChange}
+                        error={errors.email}
+                    />
+
+                    {/* USERNAME */}
+                    <AuthInput
+                        label="Username"
+                        name="username"
+                        placeholder="Enter your username"
+                        value={form.username}
+                        onChange={handleChange}
+                        error={errors.username}
+                    />
+
+                    {/* PASSWORD */}
+                    <AuthInput
+                        label="Password"
+                        type="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        value={form.password}
+                        onChange={handleChange}
+                        error={errors.password}
+                    />
+
+                    {/* BUTTON */}
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="
+                            w-full
+                            bg-indigo-600
+                            hover:bg-indigo-700
+                            transition
+                            py-3
+                            rounded-xl
+                            font-semibold
+                            text-white
+                            shadow-lg
+                            hover:shadow-indigo-500/30
+                            disabled:opacity-50
+                            disabled:cursor-not-allowed
+                        "
+                    >
+                        {loading ? "Loading..." : "Register"}
+                    </button>
+
+                </form>
+
+                {/* FOOTER */}
+                <p className="text-center text-gray-400 text-sm mt-6">
+
+                    Already have an account?{" "}
+
+                    <Link
+                        to="/login"
+                        className="
+                            text-indigo-400
+                            hover:text-indigo-300
+                            transition
+                        "
+                    >
+                        Login
+                    </Link>
+
+                </p>
+
+            </div>
         </div>
-      </div>
-    </section>
-  );
+    );
 }
