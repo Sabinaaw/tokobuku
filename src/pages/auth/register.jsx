@@ -18,10 +18,6 @@ export default function Register() {
     const [errors, setErrors] = useState({});
     const [serverError, setServerError] = useState("");
     const [loading, setLoading] = useState(false);
-
-    // =========================================
-    // HANDLE CHANGE
-    // =========================================
     const handleChange = (e) => {
 
         setForm({
@@ -30,10 +26,6 @@ export default function Register() {
         });
 
     };
-
-    // =========================================
-    // VALIDATION
-    // =========================================
     const validate = () => {
 
         let newErrors = {};
@@ -43,69 +35,42 @@ export default function Register() {
         }
 
         if (!form.email.trim()) {
-
             newErrors.email = "Email wajib diisi";
-
         } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-
             newErrors.email = "Format email tidak valid";
-
         }
-
         if (!form.username.trim()) {
             newErrors.username = "Username wajib diisi";
         }
-
         if (!form.password.trim()) {
-
             newErrors.password = "Password wajib diisi";
-
         } else if (form.password.length < 6) {
-
             newErrors.password = "Password minimal 6 karakter";
-
         }
 
         setErrors(newErrors);
-
         return Object.keys(newErrors).length === 0;
     };
 
-    // =========================================
-    // SUBMIT
-    // =========================================
     const handleSubmit = async (e) => {
-
         e.preventDefault();
-
         setServerError("");
-
         if (!validate()) return;
-
         try {
-
             setLoading(true);
-
             const res = await register({
                 name: form.fullname,
                 email: form.email,
                 username: form.username,
                 password: form.password,
             });
-
             console.log("REGISTER SUCCESS:", res);
             console.log("ROLE:", res.user.role);
-
-            // CLEAR OLD STORAGE
             localStorage.clear();
-
-            // SAVE TOKEN
             localStorage.setItem(
                 "token",
                 res.access_token
             );
-
-            // SAVE USER
             localStorage.setItem(
                 "user",
                 JSON.stringify(res.user)
@@ -117,59 +82,38 @@ export default function Register() {
             if (res.user.role === "admin") {
 
                 navigate("/admin");
-
             } else {
-
                 navigate("/customer");
-
             }
-
         } catch (err) {
-
             console.error(
                 "REGISTER ERROR:",
                 err.response?.data || err
             );
-
-            // VALIDATION ERROR FROM LARAVEL
             if (err.response?.data?.errors) {
-
                 const laravelErrors =
                     err.response.data.errors;
-
                 let formattedErrors = {};
-
                 Object.keys(laravelErrors).forEach((key) => {
                     formattedErrors[key] =
                         laravelErrors[key][0];
                 });
-
                 setErrors(formattedErrors);
-
             }
             // GENERAL ERROR
             else if (err.response?.data?.message) {
-
                 setServerError(
                     err.response.data.message
                 );
-
             } else {
-
                 setServerError("Register gagal");
-
             }
-
         } finally {
-
             setLoading(false);
-
         }
     };
-
     return (
         <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4 py-10">
-
             <div
                 className="
                     w-full
@@ -182,7 +126,6 @@ export default function Register() {
                     shadow-2xl
                 "
             >
-
                 {/* HEADER */}
                 <div className="text-center mb-8">
 
@@ -195,7 +138,6 @@ export default function Register() {
                     </p>
 
                 </div>
-
                 {/* SERVER ERROR */}
                 {serverError && (
                     <div
@@ -283,14 +225,11 @@ export default function Register() {
                     >
                         {loading ? "Loading..." : "Register"}
                     </button>
-
                 </form>
 
                 {/* FOOTER */}
                 <p className="text-center text-gray-400 text-sm mt-6">
-
                     Already have an account?{" "}
-
                     <Link
                         to="/login"
                         className="
@@ -301,9 +240,7 @@ export default function Register() {
                     >
                         Login
                     </Link>
-
                 </p>
-
             </div>
         </div>
     );

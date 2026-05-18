@@ -83,56 +83,29 @@ export default function EditBook() {
   if (loading) return <p className="text-white">Loading...</p>;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-6 flex justify-center items-center">
-      <div className="w-full max-w-lg bg-slate-900 p-6 rounded-xl">
-
-        <h1 className="text-xl font-bold mb-6">Edit Book</h1>
-
+    <div className="flex items-center justify-center min-h-screen p-6 text-white bg-slate-950">
+      <div className="w-full max-w-lg p-6 bg-slate-900 rounded-xl">
+        <h1 className="mb-6 text-xl font-bold">Edit Book</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <input name="title" value={form.title} onChange={handleChange} className="w-full p-2 rounded bg-slate-800"/>
 
-          <input
-            name="title"
-            value={form.title}
-            onChange={handleChange}
-            className="w-full p-2 bg-slate-800 rounded"
-          />
-
-          <input
-            type="number"
-            name="price"
-            value={form.price}
-            onChange={handleChange}
-            className="w-full p-2 bg-slate-800 rounded"
-          />
-
-          <select
-            name="author_id"
-            value={form.author_id}
-            onChange={handleChange}
-            className="w-full p-2 bg-slate-800 rounded"
-          >
+          <input type="number" name="price" value={form.price} onChange={handleChange} className="w-full p-2 rounded bg-slate-800"/>
+          <select name="author_id" value={form.author_id} onChange={handleChange} className="w-full p-2 rounded bg-slate-800">
             <option value="">-- Pilih Author --</option>
             {authors.map((a) => (
               <option key={a.id} value={a.id}>{a.name}</option>
             ))}
           </select>
 
-          <select
-            name="genre_id"
-            value={form.genre_id}
-            onChange={handleChange}
-            className="w-full p-2 bg-slate-800 rounded"
-          >
+          <select name="genre_id" value={form.genre_id} onChange={handleChange} className="w-full p-2 rounded bg-slate-800">
             <option value="">-- Pilih Genre --</option>
             {genres.map((g) => (
               <option key={g.id} value={g.id}>{g.name}</option>
             ))}
           </select>
-
-          <button className="bg-indigo-600 px-4 py-2 rounded">
+          <button className="px-4 py-2 bg-indigo-600 rounded">
             Update
           </button>
-
         </form>
       </div>
     </div>

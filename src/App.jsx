@@ -1,198 +1,122 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-// ======================================
-// PUBLIC PAGES
-// ======================================
-import Home from "./pages/public/Index";
-import Books from "./pages/public/books";
-
-// ======================================
-// LAYOUTS
-// ======================================
 import PublicLayout from "./layouts/Public";
 import AdminLayout from "./layouts/admin";
-
-// ======================================
-// ROUTE PROTECTION
-// ======================================
 import PrivateRoute from "./components/PrivateRoute";
 import AdminRoute from "./components/AdminRoute";
-
-// ======================================
-// AUTH
-// ======================================
+import Home from "./pages/public/Index";
+import Books from "./pages/public/books";
 import Login from "./pages/auth/login";
 import Register from "./pages/auth/register";
-
-// ======================================
-// CUSTOMER
-// ======================================
 import CustomerDashboard from "./pages/customer";
-
-// ======================================
-// ADMIN DASHBOARD
-// ======================================
+import CustomerBookDetail from "./pages/customer/detail";
+import Cart from "./pages/customer/Cart";
+import Checkout from "./pages/customer/Checkout";
+import MyTransactions from "./pages/customer/MyTransactions";
 import Dashboard from "./pages/admin";
-
-// ======================================
-// BOOKS
-// ======================================
+import AdminUsers from "./pages/admin/users";
 import AdminBooks from "./pages/admin/books";
 import BookCreate from "./pages/admin/books/create";
 import EditBook from "./pages/admin/books/edit";
-
-// ======================================
-// GENRES
-// ======================================
 import AdminGenres from "./pages/admin/genres";
 import GenreCreate from "./pages/admin/genres/create";
 import EditGenre from "./pages/admin/genres/Edit";
-
-// ======================================
-// AUTHORS
-// ======================================
 import AdminAuthors from "./pages/admin/authors";
 import AuthorCreate from "./pages/admin/authors/create";
 import EditAuthor from "./pages/admin/authors/edit";
+import About from "./pages/public/about";
 
 export default function App() {
-    return (
-        <BrowserRouter>
-            <Routes>
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route element={<PublicLayout />}>
+          <Route index element={<Home />} />
+          <Route path="books" element={<Books />} />
+          <Route path="about" element={<About />}/>
 
-                {/* ====================================== */}
-                {/* PUBLIC */}
-                {/* ====================================== */}
-                <Route element={<PublicLayout />}>
+          <Route
+            path="cart"
+            element={
+              <PrivateRoute>
+                <Cart />
+              </PrivateRoute>
+            }
+          />
+        </Route>
 
-                    <Route
-                        index
-                        element={<Home />}
-                    />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-                    <Route
-                        path="books"
-                        element={<Books />}
-                    />
+        <Route
+          path="/customer"
+          element={
+            <PrivateRoute>
+              <CustomerDashboard />
+            </PrivateRoute>
+          }
+        />
 
-                </Route>
+        <Route
+          path="/customer/books/:id"
+          element={
+            <PrivateRoute>
+              <CustomerBookDetail />
+            </PrivateRoute>
+          }
+        />
 
-                {/* ====================================== */}
-                {/* AUTH */}
-                {/* ====================================== */}
-                <Route
-                    path="/login"
-                    element={<Login />}
-                />
+        <Route
+          path="/checkout"
+          element={
+            <PrivateRoute>
+              <Checkout />
+            </PrivateRoute>
+          }
+        />
 
-                <Route
-                    path="/register"
-                    element={<Register />}
-                />
+        <Route
+          path="/my-transactions"
+          element={
+            <PrivateRoute>
+              <MyTransactions />
+            </PrivateRoute>
+          }
+        />
 
-                {/* ====================================== */}
-                {/* CUSTOMER */}
-                {/* ====================================== */}
-                <Route
-                    path="/customer"
-                    element={
-                        <PrivateRoute>
-                            <CustomerDashboard />
-                        </PrivateRoute>
-                    }
-                />
+        <Route
+          path="/admin"
+          element={
+            <PrivateRoute>
+              <AdminRoute>
+                <AdminLayout />
+              </AdminRoute>
+            </PrivateRoute>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="users">
+            <Route index element={<AdminUsers />} />
+          </Route>
 
-                {/* ====================================== */}
-                {/* ADMIN */}
-                {/* ====================================== */}
-                <Route
-                    path="/admin"
-                    element={
-                        <PrivateRoute>
+          <Route path="books">
+            <Route index element={<AdminBooks />} />
+            <Route path="create" element={<BookCreate />} />
+            <Route path="edit/:id" element={<EditBook />} />
+          </Route>
 
-                            <AdminRoute>
-                                <AdminLayout />
-                            </AdminRoute>
+          <Route path="genres">
+            <Route index element={<AdminGenres />} />
+            <Route path="create" element={<GenreCreate />} />
+            <Route path="edit/:id" element={<EditGenre />} />
+          </Route>
 
-                        </PrivateRoute>
-                    }
-                >
-
-                    {/* DASHBOARD */}
-                    <Route
-                        index
-                        element={<Dashboard />}
-                    />
-
-                    {/* ====================================== */}
-                    {/* BOOKS */}
-                    {/* ====================================== */}
-                    <Route path="books">
-
-                        <Route
-                            index
-                            element={<AdminBooks />}
-                        />
-
-                        <Route
-                            path="create"
-                            element={<BookCreate />}
-                        />
-
-                        <Route
-                            path="edit/:id"
-                            element={<EditBook />}
-                        />
-
-                    </Route>
-
-                    {/* ====================================== */}
-                    {/* GENRES */}
-                    {/* ====================================== */}
-                    <Route path="genres">
-
-                        <Route
-                            index
-                            element={<AdminGenres />}
-                        />
-
-                        <Route
-                            path="create"
-                            element={<GenreCreate />}
-                        />
-
-                        <Route
-                            path="edit/:id"
-                            element={<EditGenre />}
-                        />
-
-                    </Route>
-
-                    {/* ====================================== */}
-                    {/* AUTHORS */}
-                    {/* ====================================== */}
-                    <Route path="authors">
-
-                        <Route
-                            index
-                            element={<AdminAuthors />}
-                        />
-
-                        <Route
-                            path="create"
-                            element={<AuthorCreate />}
-                        />
-
-                        <Route
-                            path="edit/:id"
-                            element={<EditAuthor />}
-                        />
-
-                    </Route>
-
-                </Route>
-
-            </Routes>
-        </BrowserRouter>
-    );
+          <Route path="authors">
+            <Route index element={<AdminAuthors />} />
+            <Route path="create" element={<AuthorCreate />} />
+            <Route path="edit/:id" element={<EditAuthor />} />
+          </Route>
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }

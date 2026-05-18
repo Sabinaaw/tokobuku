@@ -11,9 +11,7 @@ export const getAuthors = async () => {
 
 export const createAuthor = async (payload) => {
     const token = localStorage.getItem("token");
-
     console.log("TOKEN DIKIRIM:", token); 
-
     const { data } = await API.post("/authors", payload, {
         headers: {
             Authorization: `Bearer ${token}`,
@@ -35,11 +33,9 @@ export const getAuthorById = async (id) => {
 
 export const updateAuthor = async (id, payload) => {
     const token = localStorage.getItem("token");
-
     if (!token) {
         throw new Error("Token tidak ditemukan, silakan login dulu");
     }
-
     try {
         const { data } = await API.put(`/authors/${id}`, payload, {
             headers: {
@@ -58,7 +54,6 @@ export const updateAuthor = async (id, payload) => {
 // DELETE AUTHOR
 export const deleteAuthor = async (id) => {
     const token = localStorage.getItem("token");
-
     try {
         const { data } = await API.delete(`/authors/${id}`, {
             headers: {
