@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Author;
@@ -9,10 +8,9 @@ class AuthorController extends Controller
 {
     public function index()
     {
-        $authors = Author::all();
-
+        $authors = Author::latest()->get();
         return response()->json([
-            'status' => 'success',
+            'success' => true,
             'data' => $authors
         ]);
     }
@@ -20,16 +18,14 @@ class AuthorController extends Controller
     public function show($id)
     {
         $author = Author::find($id);
-
         if (!$author) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Author not found'
+                'message' => 'Author tidak ditemukan'
             ], 404);
         }
 
         return response()->json([
-            'status' => 'success',
+            'success' => true,
             'data' => $author
         ]);
     }
@@ -39,60 +35,49 @@ class AuthorController extends Controller
         $request->validate([
             'name' => 'required|string|max:255'
         ]);
-
         $author = Author::create([
             'name' => $request->name
         ]);
-
         return response()->json([
-            'status' => 'success',
+            'success' => true,
+            'message' => 'Author berhasil ditambahkan',
             'data' => $author
         ], 201);
     }
 
-
     public function update(Request $request, $id)
     {
         $author = Author::find($id);
-
         if (!$author) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Author not found'
+                'message' => 'Author tidak ditemukan'
             ], 404);
         }
-
         $request->validate([
             'name' => 'required|string|max:255'
         ]);
-
         $author->update([
             'name' => $request->name
         ]);
-
         return response()->json([
-            'status' => 'success',
+            'success' => true,
+            'message' => 'Author berhasil diupdate',
             'data' => $author
         ]);
     }
 
-    // DELETE
     public function destroy($id)
     {
         $author = Author::find($id);
-
         if (!$author) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Author not found'
+                'message' => 'Author tidak ditemukan'
             ], 404);
         }
-
         $author->delete();
-
         return response()->json([
-            'status' => 'success',
-            'message' => 'Deleted successfully'
+            'success' => true,
+            'message' => 'Author berhasil dihapus'
         ]);
     }
 }

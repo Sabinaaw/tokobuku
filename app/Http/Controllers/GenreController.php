@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Genre;
@@ -9,10 +8,9 @@ class GenreController extends Controller
 {
     public function index()
     {
-        $genres = Genre::all();
-
+        $genres = Genre::latest()->get();
         return response()->json([
-            'status' => 'success',
+            'success' => true,
             'data' => $genres
         ]);
     }
@@ -20,16 +18,13 @@ class GenreController extends Controller
     public function show($id)
     {
         $genre = Genre::find($id);
-
         if (!$genre) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Genre not found'
+                'message' => 'Genre tidak ditemukan'
             ], 404);
         }
-
         return response()->json([
-            'status' => 'success',
+            'success' => true,
             'data' => $genre
         ]);
     }
@@ -39,13 +34,12 @@ class GenreController extends Controller
         $request->validate([
             'name' => 'required|string|max:255'
         ]);
-
         $genre = Genre::create([
             'name' => $request->name
         ]);
-
         return response()->json([
-            'status' => 'success',
+            'success' => true,
+            'message' => 'Genre berhasil ditambahkan',
             'data' => $genre
         ], 201);
     }
@@ -53,24 +47,20 @@ class GenreController extends Controller
     public function update(Request $request, $id)
     {
         $genre = Genre::find($id);
-
         if (!$genre) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Genre not found'
+                'message' => 'Genre tidak ditemukan'
             ], 404);
         }
-
         $request->validate([
             'name' => 'required|string|max:255'
         ]);
-
         $genre->update([
             'name' => $request->name
         ]);
-
         return response()->json([
-            'status' => 'success',
+            'success' => true,
+            'message' => 'Genre berhasil diupdate',
             'data' => $genre
         ]);
     }
@@ -78,19 +68,15 @@ class GenreController extends Controller
     public function destroy($id)
     {
         $genre = Genre::find($id);
-
         if (!$genre) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Genre not found'
+                'message' => 'Genre tidak ditemukan'
             ], 404);
         }
-
         $genre->delete();
-
         return response()->json([
-            'status' => 'success',
-            'message' => 'Deleted successfully'
+            'success' => true,
+            'message' => 'Genre berhasil dihapus'
         ]);
     }
 }

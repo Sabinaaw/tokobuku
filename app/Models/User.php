@@ -10,10 +10,10 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable;
-
     protected $fillable = [
         'name',
         'email',
+        'username',
         'password',
         'role',
     ];
@@ -22,31 +22,25 @@ class User extends Authenticatable implements JWTSubject
         'password',
         'remember_token',
     ];
-
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = bcrypt($value);
     }
-
     public function getJWTIdentifier()
     {
         return $this->getKey();
     }
-
     public function getJWTCustomClaims()
     {
         return [];
     }
-
     public function isAdmin()
     {
         return $this->role === 'admin';
     }
-
     public function transactions()
     {
         return $this->hasMany(Transaction::class, 'customer_id');

@@ -12,13 +12,12 @@ return new class extends Migration
     public function up()
     {
         Schema::create('transactions', function (Blueprint $table) {
+
             $table->id();
             $table->string('order_number');
-
-            // RELASI
-            $table->foreignId('customer_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('book_id')->constrained()->onDelete('cascade');
-
+            $table->foreignId('customer_id')
+                ->constrained('users')
+                ->onDelete('cascade');
             $table->decimal('total_amount', 10, 2);
             $table->timestamps();
         });

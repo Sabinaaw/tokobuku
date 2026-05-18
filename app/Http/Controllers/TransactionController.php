@@ -1,124 +1,143 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Models\Transaction;
 use Illuminate\Http\Request;
+use App\Models\Transaction;
+use App\Models\TransactionDetail;
+use App\Models\Cart;
 
 class TransactionController extends Controller
 {
-    // =========================
-    // ADMIN ONLY - READ ALL
-    // =========================
     public function index()
     {
         if (auth()->user()->role !== 'admin') {
-            return response()->json(['message' => 'Akses hanya admin'], 403);
+            return response()->json([
+                'message' => 'Akses hanya admin'
+            ], 403);
         }
-
-        $transactions = Transaction::with(['customer', 'book'])->get();
-
+        $transactions = Transaction::with([
+            'customer',
+            'details.book'
+        ])->get();
         return response()->json([
             'status' => 'success',
             'data' => $transactions
         ]);
     }
 
-    // =========================
-    // CUSTOMER - SHOW
-    // =========================
     public function show(int $id)
     {
         if (auth()->user()->role !== 'customer') {
-            return response()->json(['message' => 'Hanya customer'], 403);
+            return response()->json([
+                'message' => 'Hanya customer'
+            ], 403);
         }
-
-        $transaction = Transaction::with(['customer', 'book'])->find($id);
-
+        $transaction = Transaction::with([
+            'customer',
+            'details.book'
+        ])->find($id);
         if (!$transaction) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data tidak ditemukan'
             ], 404);
         }
-
+        if ($transaction->customer_id !== auth()->id()) {
+            return response()->json([
+                'message' => 'Bukan transaksi kamu'
+            ], 403);
+        }
         return response()->json([
             'status' => 'success',
             'data' => $transaction
         ]);
     }
 
-    // =========================
-    // CUSTOMER - CREATE
-    // =========================
     public function store(Request $request)
     {
         if (auth()->user()->role !== 'customer') {
-            return response()->json(['message' => 'Hanya customer'], 403);
+            return response()->json([
+                'message' => 'Hanya customer'
+            ], 403);
         }
-
-        $request->validate([
-            'book_id' => 'required|exists:books,id',
-            'total_amount' => 'required|numeric'
-        ]);
-
+        $user = auth()->user();
+        $cartItems = Cart::with('book')
+            ->where('customer_id', $user->id)
+            ->get();
+        if ($cartItems->isEmpty()) {
+            return response()->json([
+                'message' => 'Cart kosong'
+            ], 400);
+        }
+        $total = 0;
+        foreach ($cartItems as $item) {
+            $total += (
+                $item->book->price *
+                $item->quantity
+            );
+        }
         $transaction = Transaction::create([
             'order_number' => 'TRX-' . time(),
-            'customer_id' => auth()->id(),
-            'book_id' => $request->book_id,
-            'total_amount' => $request->total_amount
+            'customer_id' => $user->id,
+            'total_amount' => $total
         ]);
-
+        foreach ($cartItems as $item) {
+            TransactionDetail::create([
+                'transaction_id' => $transaction->id,
+                'book_id' => $item->book_id,
+                'qty' => $item->quantity,
+                'price' => $item->book->price,
+            ]);
+            $book = $item->book;
+            $book->stock -= $item->quantity;
+            $book->save();
+        }
+        Cart::where(
+            'customer_id',
+            $user->id
+        )->delete();
         return response()->json([
             'status' => 'success',
+            'message' => 'Checkout berhasil',
             'data' => $transaction
         ], 201);
     }
 
-    // =========================
-    // CUSTOMER - UPDATE
-    // =========================
     public function update(Request $request, int $id)
     {
         if (auth()->user()->role !== 'customer') {
-            return response()->json(['message' => 'Hanya customer'], 403);
+            return response()->json([
+                'message' => 'Hanya customer'
+            ], 403);
         }
-
         $transaction = Transaction::find($id);
-
         if (!$transaction) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Data tidak ditemukan'
             ], 404);
         }
-
-        // optional: biar cuma bisa update transaksi sendiri
         if ($transaction->customer_id !== auth()->id()) {
-            return response()->json(['message' => 'Bukan transaksi kamu'], 403);
+            return response()->json([
+                'message' => 'Bukan transaksi kamu'
+            ], 403);
         }
-
         $transaction->update([
             'total_amount' => $request->total_amount
         ]);
-
         return response()->json([
             'status' => 'success',
             'data' => $transaction
         ]);
     }
-
-    // =========================
-    // ADMIN ONLY - DELETE
-    // =========================
     public function destroy(int $id)
     {
         if (auth()->user()->role !== 'admin') {
-            return response()->json(['message' => 'Akses hanya admin'], 403);
+            return response()->json([
+                'message' => 'Akses hanya admin'
+            ], 403);
         }
-
         $transaction = Transaction::find($id);
-
         if (!$transaction) {
             return response()->json([
                 'status' => 'error',
@@ -127,7 +146,6 @@ class TransactionController extends Controller
         }
 
         $transaction->delete();
-
         return response()->json([
             'status' => 'success',
             'message' => 'Deleted'
